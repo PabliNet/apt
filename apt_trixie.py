@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 from pathlib import Path
-from os import access, execv, geteuid, X_OK
+from os import access, execv, environ, geteuid, X_OK
 from os.path import exists
 from sys import argv, exit
 
 argv[0] = '/usr/bin/' + Path(argv[0]).stem[:3]
+apt_search = environ.get("APT_SEARCH", argv[0])
 
 WITH_SUDO = [
     'install','remove', 'purge', 'update', 'upgrade', 'full-upgrade',
@@ -17,10 +18,8 @@ cmds = ['/usr/bin/aptitude', '/usr/bin/apt-cache', argv[0]]
 if len(argv) > 1:
     for e in argv[1:]:
         if e == 'search':
-            for cmd in cmds:
-                if exists(cmd) and access(cmd, X_OK):
-                    argv[0] = cmd
-                    break
+            if not access(apt_search, X_OK):
+                argv[0] = apt_search
             break
         elif geteuid() > 0 and e in WITH_SUDO:
             argv.insert(0, '/usr/bin/sudo')
