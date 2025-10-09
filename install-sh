@@ -1,0 +1,65 @@
+#!/bin/sh
+LANG_SHORT=${LANG%%_*}
+[ -z "$LANG_SHORT" ] && LANG_SHORT='en'
+msg () {
+    correct='./install-sh [--python | --sh-posix]'
+    case "$LANG_SHORT" in
+        es)
+        case "$1" in
+            option) printf "Seleccione la versión o \033[1mC\033[0m para cancelar: " ;;
+            0) printf "\033[1m¡Instalado correctamente!\033[0m\n" ;;
+            1) printf 'Instalación cancelada.\n' ;;
+            2) printf 'Uso incorrecto. %s\n' "$correct" ;;
+            3) printf 'Opción incorrecta. %s\n' "$correct" ;;
+            4) printf 'Error durante la copia del archivo.\n' ;;
+        esac ;;
+        *)
+        case "$1" in
+            option) printf "Choose a version or \033[1mC\033[0m to cancel: " ;;
+            0) printf "\033[1mSuccessfully installed!\033[0m\n" ;;
+            1) printf 'Installation cancelled.\n' ;;
+            2) printf 'Invalid usage. %s\n' "$correct" ;;
+            3) printf 'Incorrect option. %s\n' "$correct" ;;
+            4) printf 'Error copying file.\n' ;;
+        esac ;;
+    esac
+    [ "$1" != "option" ] && [ "$1" != "1" ] && exit "$1"
+}
+
+o=''
+OPTION="${1:-}"
+
+case "$#" in
+    0)
+    while [ -z "$o" ]; do
+        printf '\033[1m1\033[0m.- Python\n'
+        printf '\033[1m2\033[0m.- Shell (POSIX)\n'
+        msg option
+        IFS= read -r o || msg 1
+        case "$o" in
+            1) OPTION='--python' ;;
+            2) OPTION='--sh-posix' ;;
+            C|c) msg 1; exit 0 ;;
+            *) o='' ;;
+        esac
+    done
+;;
+    1) ;;
+    *) msg 2 ;;
+esac
+
+case "$OPTION" in
+    -py|--python) file='apt_trixie.py' ;;
+    -sh|--sh-posix) file='apt_trixie.sh' ;;
+    *) msg 3 ;;
+esac
+
+copy_cmd='cp'
+[ "$(id -u)" -gt 0 ] && copy_cmd='sudo cp'
+to='/usr/local/bin/apt'
+
+if $copy_cmd -u "$file" "$to" 2> /dev/null; then
+    msg 0
+else
+    msg 4
+fi
