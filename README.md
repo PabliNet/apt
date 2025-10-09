@@ -34,7 +34,7 @@ If your user does not have `sudo` privileges, follow these steps:
 su -
 ```
 2. Add the user to the sudo group  
-Replace \<username\> with your actual username:
+Replace **\<username\>** with your actual username:
 ```sh
 usermod -aG sudo <username>
 ```
