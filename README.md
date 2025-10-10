@@ -24,6 +24,17 @@ Run the installer:
 ```
 You can also specify the version directly with `--python` or `--sh-posix`.
 
+## Customizing the search command
+
+By default, the wrapper uses apt for search operations.  
+You can change this behavior by setting the environment variable `APT_SEARCH` to another command, such as aptitude or apt-cache.
+
+```sh
+export APT_SEARCH=/usr/bin/aptitude
+```
+
+This variable can also be set permanently in your shell configuration file (e.g. ~/.bashrc or ~/.profile).
+
 ----
 
 ## Granting sudo privileges to a user in Debian
