@@ -35,9 +35,21 @@ export APT_SEARCH=/usr/bin/aptitude
 
 This variable can also be set permanently in your shell configuration file (e.g. ~/.bashrc or ~/.profile).
 
+### Allowing custom binary paths
+
+Normally, the wrapper forces all binaries to be located inside `/usr/bin` for safety reasons.
+If you want to allow fully custom paths (e.g. `/usr/local/bin/aptitude` or a script in your `$HOME`), you must also define the variable `APT_SEARCH_CUSTOM` (its value is irrelevant — only its presence matters):
+
+```sh
+export APT_SEARCH_CUSTOM=1
+export APT_SEARCH=$HOME/bin/my-custom-search
+```
+
+When `APT_SEARCH_CUSTOM` is set, the wrapper does not prepend `/usr/bin/` and instead uses exactly the path (or command name) defined in APT_SEARCH.
+
 ----
 
-## Granting sudo privileges to a user in Debian
+## Granting `sudo` privileges to a user in Debian
 
 If your user does not have `sudo` privileges, follow these steps:
 1. Switch to the root user:

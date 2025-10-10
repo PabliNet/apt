@@ -60,6 +60,7 @@ to='/usr/local/bin/apt'
 
 if $copy_cmd -u "$file" "$to" 2> /dev/null; then
     msg 0
+    chmod +x /usr/local/bin/apt
 else
     msg 4
 fi
