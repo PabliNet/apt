@@ -55,12 +55,16 @@ case "$OPTION" in
 esac
 
 copy_cmd='cp'
-[ "$(id -u)" -gt 0 ] && copy_cmd='sudo cp'
+chmod_cmd='chmod'
+if [ "$(id -u)" -gt 0 ]; then
+    copy_cmd='sudo cp'
+    chmod_cmd='sudo chmod'
+fi
 to='/usr/local/bin/apt'
 
 if $copy_cmd -u "$file" "$to" 2> /dev/null; then
+    $chmod_cmd +x /usr/local/bin/apt
     msg 0
-    chmod +x /usr/local/bin/apt
 else
     msg 4
 fi
