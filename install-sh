@@ -7,23 +7,29 @@ msg () {
         es)
         case "$1" in
             option) printf "Seleccione la versión o \033[1mC\033[0m para cancelar: " ;;
-            0) printf "\033[1m¡Instalado correctamente!\033[0m\n\033[1;5;38;5;0;48;5;255mReinicia la terminal…\033[0m\n" ;;
+            0) printf "\033[1m¡Instalado correctamente!\033[0m\n" ;;
             1) printf 'Instalación cancelada.\n' ;;
             2) printf 'Uso incorrecto. %s\n' "$correct" ;;
             3) printf 'Opción incorrecta. %s\n' "$correct" ;;
-            4) printf 'Error durante la copia del archivo.\n' ;;
+            4) printf 'Ejecute \033[7mrehash\033[0m o reinicie la terminal.\n' ;;
+            5) printf 'Error durante la copia del archivo.\n' ;;
         esac ;;
         *)
         case "$1" in
             option) printf "Choose a version or \033[1mC\033[0m to cancel: " ;;
-            0) printf "\033[1mSuccessfully installed!\033[0m\n\033[1;5;7;38;5;0;48;5;255mRestart the terminal…\033[0m\n" ;;
+            0) printf "\033[1mSuccessfully installed!\033[0m\n" ;;
             1) printf 'Installation cancelled.\n' ;;
             2) printf 'Invalid usage. %s\n' "$correct" ;;
             3) printf 'Incorrect option. %s\n' "$correct" ;;
-            4) printf 'Error copying file.\n' ;;
+            4) printf 'Run \033[7mrehash\033[0m or restart the terminal.\n' ;;
+            5) printf 'Error copying file.\n' ;;
         esac ;;
     esac
-    [ "$1" != "option" ] && [ "$1" != "1" ] && exit "$1"
+    case "$1" in
+        option|0|1) [ -n "$2" ] && exit $1 ;;
+        4) exit 0 ;;
+        *) exit $1 ;;
+    esac
 }
 
 o=''
@@ -35,7 +41,7 @@ case "$#" in
         printf '\033[1m1\033[0m.- Python\n'
         printf '\033[1m2\033[0m.- Shell (POSIX)\n'
         msg option
-        IFS= read -r o || msg 1
+        IFS= read -r o || msg 1 aux
         case "$o" in
             1) OPTION='--python' ;;
             2) OPTION='--sh-posix' ;;
@@ -54,8 +60,6 @@ case "$OPTION" in
     *) msg 3 ;;
 esac
 
-copy_cmd='cp'
-chmod_cmd='chmod'
 if [ "$(id -u)" -gt 0 ]; then
     copy_cmd='sudo cp'
     chmod_cmd='sudo chmod'
@@ -64,15 +68,14 @@ to='/usr/local/bin/apt'
 
 if [ "$(id -u)" -eq 0 ]; then
     cp "$file" "$to" && chmod +x "$to"
-    status="$?"
+    ret="$?"
 else
     sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
-    status="$?"
+    ret="$?"
 fi
-if [ "$status" -eq 0 ]; then
-    [ -n "$ZSH_VERSION" ] && rehash
-    hash -r 2>/dev/null || true
+if [ "$ret" -eq 0 ]; then
     msg 0
+    hash -r
 else
-    msg 4
+    msg 5
 fi
