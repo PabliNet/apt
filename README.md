@@ -18,7 +18,14 @@ Change into the `apt` directory:
 cd apt
 ```
 
+Before running the script, make sure to grant execute permissions to `install-sh`:
+
+```sh
+chmod +x install-sh
+```
+
 Run the installer:
+
 ```sh
 ./install-sh
 ```
