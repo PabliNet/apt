@@ -31,6 +31,25 @@ source install-sh
 ```
 You can also specify the version directly with `--python` or `--sh-posix`.
 
+**Python version:**
+
+```sh
+source install-sh -py
+```
+or
+```sh
+source install-sh --python
+```
+
+**POSIX Shell version:**
+
+```sh
+source install-sh -sh
+```
+or
+```sh
+source install-sh --sh-posix
+```
 ## Customizing the search command
 
 By default, the wrapper uses apt for search operations.  
