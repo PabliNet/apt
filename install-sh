@@ -7,7 +7,7 @@ msg () {
         es)
         case "$1" in
             option) printf "Seleccione la versión o \033[1mC\033[0m para cancelar: " ;;
-            0) printf "\033[1m¡Instalado correctamente!\033[0m\n" ;;
+            0) printf "\033[1m¡Instalado correctamente!\033[0m\n\033[1;5;38;5;0;48;5;255mReinicia la terminal…\033[0m\n" ;;
             1) printf 'Instalación cancelada.\n' ;;
             2) printf 'Uso incorrecto. %s\n' "$correct" ;;
             3) printf 'Opción incorrecta. %s\n' "$correct" ;;
@@ -16,7 +16,7 @@ msg () {
         *)
         case "$1" in
             option) printf "Choose a version or \033[1mC\033[0m to cancel: " ;;
-            0) printf "\033[1mSuccessfully installed!\033[0m\n" ;;
+            0) printf "\033[1mSuccessfully installed!\033[0m\n\033[1;5;7;38;5;0;48;5;255mRestart the terminal…\033[0m\n" ;;
             1) printf 'Installation cancelled.\n' ;;
             2) printf 'Invalid usage. %s\n' "$correct" ;;
             3) printf 'Incorrect option. %s\n' "$correct" ;;
@@ -64,8 +64,15 @@ to='/usr/local/bin/apt'
 
 if [ "$(id -u)" -eq 0 ]; then
     cp "$file" "$to" && chmod +x "$to"
-    [ $? -eq 0 ] && msg 0 || msg 4
+    status="$?"
 else
     sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
-    [ $? -eq 0 ] && msg 0 || msg 4
+    status="$?"
+fi
+if [ "$status" -eq 0 ]; then
+    [ -n "$ZSH_VERSION" ] && rehash
+    hash -r 2>/dev/null || true
+    msg 0
+else
+    msg 4
 fi
