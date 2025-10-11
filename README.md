@@ -27,7 +27,7 @@ chmod +x install-sh
 Run the installer:
 
 ```sh
-./install-sh
+source install-sh
 ```
 You can also specify the version directly with `--python` or `--sh-posix`.
 
