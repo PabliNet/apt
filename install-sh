@@ -62,9 +62,10 @@ if [ "$(id -u)" -gt 0 ]; then
 fi
 to='/usr/local/bin/apt'
 
-if $copy_cmd -u "$file" "$to" 2> /dev/null; then
-    $chmod_cmd +x /usr/local/bin/apt
-    msg 0
+if [ "$(id -u)" -eq 0 ]; then
+    cp "$file" "$to" && chmod +x "$to"
+    [ $? -eq 0 ] && msg 0 || msg 4
 else
-    msg 4
+    sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
+    [ $? -eq 0 ] && msg 0 || msg 4
 fi
