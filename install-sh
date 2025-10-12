@@ -1,6 +1,7 @@
 #!/bin/sh
 LANG_SHORT=${LANG%%_*}
 [ -z "$LANG_SHORT" ] && LANG_SHORT='en'
+IS_SOURCE=$(printf "%s" $0 | awk '/^(\.|\/)/ {print 1}')
 msg () {
     correct='./install-sh [--python | --sh-posix]'
     case "$LANG_SHORT" in
@@ -34,9 +35,10 @@ msg () {
     fi
 }
 
-o=''
-OPTION="${1:-}"
+say () { printf "%s\n" "$1"; }
 
+OPTION="${1:-}"
+o=''
 case "$#" in
     0)
     while [ -z "$o" ]; do
@@ -47,20 +49,20 @@ case "$#" in
         case "$o" in
             1) OPTION='--python' ;;
             2) OPTION='--sh-posix' ;;
-            C|c) OPTION=C; o="$(msg 1)"; printf "%s\n" "$o" ;;
+            C|c) OPTION=C; o="$(msg 1)"; say "$(msg "$o")" ;;
             *) o='' ;;
         esac
     done
 ;;
     1) ;;
-    *) OPTION=C; o="$(msg 2)"; printf "%s\n" "$o" ;;
+    *) OPTION=C; o="$(msg 2)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 2 ;;
 esac
 [ "$OPTION" != C ] && o=''
 case "$OPTION" in
     -py|--python) file='apt_trixie.py' ;;
     -sh|--sh-posix) file='apt_trixie.sh' ;;
     C|c) ;;
-    *) o="$(msg 3)"; printf "%s\n" "$o" ;;
+    *) o="$(msg 3)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 3 ;;
 esac
 
 if [ "$(id -u)" -gt 0 ]; then
@@ -69,7 +71,7 @@ if [ "$(id -u)" -gt 0 ]; then
 fi
 to='/usr/local/bin/apt'
 
-if [ ! -n "$o" ]; then
+if [ -z "$o" ]; then
     if [ "$(id -u)" -eq 0 ]; then
         cp "$file" "$to" && chmod +x "$to"
         ret="$?"
@@ -77,16 +79,15 @@ if [ ! -n "$o" ]; then
         sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
         ret="$?"
     else
-        o="$(msg 4)"; printf "%s\n" "$o"
+        o="$(msg 4)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 4
     fi
     if [ "$ret" -eq 0 ]; then
-        o="$(msg 0)"; printf "%s\n" "$o"
+        o="$(msg 0)"; say "$(msg "$o")"
         hash -r
-        if [ "${SHELL##*/}" = 'zsh' ]; then
-            o="$(msg 5)"
-            printf "%s\n" "$o"
+        if [ "${SHELL##*/}" = zsh ] && [ -n "$IS_SOURCE" ]; then
+            o="$(msg 5)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 0
         fi
     else
-        o="$(msg 6)"; printf "%s\n" "$o"
+        o="$(msg 6)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 6
     fi
 fi
