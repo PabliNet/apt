@@ -27,28 +27,30 @@ chmod +x install-sh
 Run the installer:
 
 ```sh
-source install-sh
+./install-sh
 ```
+**Optional:** Run `hash -r` or `rehash` in Zsh
+
 You can also specify the version directly with `--python` or `--sh-posix`.
 
-**Python version:**
+**Python version (optional):**
 
 ```sh
-source install-sh -py
+./install-sh -py
 ```
 or
 ```sh
-source install-sh --python
+./install-sh --python
 ```
 
-**POSIX Shell version:**
+**POSIX Shell version (optional):**
 
 ```sh
-source install-sh -sh
+./install-sh -sh
 ```
 or
 ```sh
-source install-sh --sh-posix
+./install-sh --sh-posix
 ```
 ## Customizing the search command
 
@@ -97,4 +99,4 @@ The new permissions take effect only after logging out and back in.
 ```sh
 sudo whoami
 ```
-If it returns root, everything is set up correctly.
+If it returns `root`, everything is set up correctly.
