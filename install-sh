@@ -35,8 +35,6 @@ msg () {
     fi
 }
 
-say () { printf "%s\n" "$1"; }
-
 OPTION="${1:-}"
 o=''
 case "$#" in
