@@ -49,20 +49,20 @@ case "$#" in
         case "$o" in
             1) OPTION='--python' ;;
             2) OPTION='--sh-posix' ;;
-            C|c) OPTION=C; o="$(msg 1)"; say "$(msg "$o")" ;;
+            C|c) OPTION=C; o="$(msg 1)"; printf "%s\n" "$o" ;;
             *) o='' ;;
         esac
     done
 ;;
     1) ;;
-    *) OPTION=C; o="$(msg 2)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 2 ;;
+    *) OPTION=C; o="$(msg 2)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 2 ;;
 esac
 [ "$OPTION" != C ] && o=''
 case "$OPTION" in
     -py|--python) file='apt_trixie.py' ;;
     -sh|--sh-posix) file='apt_trixie.sh' ;;
     C|c) ;;
-    *) o="$(msg 3)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 3 ;;
+    *) o="$(msg 3)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 3 ;;
 esac
 
 if [ "$(id -u)" -gt 0 ]; then
@@ -79,15 +79,15 @@ if [ -z "$o" ]; then
         sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
         ret="$?"
     else
-        o="$(msg 4)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 4
+        o="$(msg 4)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 4
     fi
     if [ "$ret" -eq 0 ]; then
-        o="$(msg 0)"; say "$(msg "$o")"
+        o="$(msg 0)"; printf "%s\n" "$o"
         hash -r
         if [ "${SHELL##*/}" = zsh ] && [ -n "$IS_SOURCE" ]; then
-            o="$(msg 5)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 0
+            o="$(msg 5)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 0
         fi
     else
-        o="$(msg 6)"; say "$(msg "$o")"; [ -n "$IS_SOURCE" ] && exit 6
+        o="$(msg 6)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 6
     fi
 fi
