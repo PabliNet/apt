@@ -11,8 +11,9 @@ msg () {
             1) printf 'Instalación cancelada.' ;;
             2) printf 'Uso incorrecto. %s' "$correct" ;;
             3) printf 'Opción incorrecta. %s' "$correct" ;;
-            4) printf 'Ejecute \033[7mrehash\033[0m o reinicie la terminal.' ;;
-            5) printf 'Error durante la copia del archivo.' ;;
+            4) printf '\033[1msudo\033[0m no encontrado. Ejecute este script como root.' ;;
+            5) printf 'Ejecute \033[7mrehash\033[0m o reinicie la terminal.' ;;
+            6) printf 'Error durante la copia del archivo.' ;;
         esac ;;
         *)
         case "$1" in
@@ -21,8 +22,9 @@ msg () {
             1) printf 'Installation cancelled.' ;;
             2) printf 'Invalid usage. %s' "$correct" ;;
             3) printf 'Incorrect option. %s' "$correct" ;;
-            4) printf 'Run \033[7mrehash\033[0m or restart the terminal.' ;;
-            5) printf 'Error copying file.' ;;
+            4) printf '\033[1msudo\033[0m command not found. Run this script as root.' ;;
+            5) printf 'Run \033[7mrehash\033[0m or restart the terminal.' ;;
+            6) printf 'Error copying file.' ;;
         esac ;;
     esac
     if [ "$1" = option ]; then
@@ -53,7 +55,7 @@ case "$#" in
     1) ;;
     *) OPTION=C; o="$(msg 2)"; printf "%s\n" "$o" ;;
 esac
-
+[ "$OPTION" != C ] && o=''
 case "$OPTION" in
     -py|--python) file='apt_trixie.py' ;;
     -sh|--sh-posix) file='apt_trixie.sh' ;;
@@ -71,18 +73,20 @@ if [ ! -n "$o" ]; then
     if [ "$(id -u)" -eq 0 ]; then
         cp "$file" "$to" && chmod +x "$to"
         ret="$?"
-    else
+    elif command -v sudo >/dev/null 2>&1; then
         sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
         ret="$?"
+    else
+        o="$(msg 4)"; printf "%s\n" "$o"
     fi
     if [ "$ret" -eq 0 ]; then
         o="$(msg 0)"; printf "%s\n" "$o"
         hash -r
         if [ "${SHELL##*/}" = 'zsh' ]; then
-            o="$(msg 4)"
+            o="$(msg 5)"
             printf "%s\n" "$o"
         fi
     else
-        o="$(msg 5)"; printf "%s\n" "$o"
+        o="$(msg 6)"; printf "%s\n" "$o"
     fi
 fi
