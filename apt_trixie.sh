@@ -18,7 +18,14 @@ binary_absolute () {
 APT_BINARY=$(binary_absolute "$0" || true)
 
 # Comandos de apt que requieren permisos de root. Esta lista cubre las operaciones de escritura.
-WITH_SUDO='install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean download hold unhold edit-sources'
+WITH_SUDO='install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean'
+
+# Si $0 es aptitude
+case "$0" in
+    aptitude) WITH_SUDO="$WITH_SUDO hold unhold safe-upgrade" ;;
+    apt-get) WITH_SUDO="$WITH_SUDO dselect-upgrade"  ;;
+    *) WITH_SUDO="$WITH_SUDO edit-sources"
+esac
 
 # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
 APT_SEARCH_CMD=${APT_SEARCH:-$APT_BINARY}

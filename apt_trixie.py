@@ -5,6 +5,7 @@ from os.path import exists
 from sys import argv, exit
 
 PATH = '/usr/bin/'
+cmd = Path(argv[0]).stem
 argv[0] = PATH + Path(argv[0]).stem.split('.')[0].split('_')[0]
 if not environ.get('APT_SEARCH_CUSTOM'):
     apt_search = PATH + Path(environ.get("APT_SEARCH", argv[0])).stem
@@ -12,10 +13,14 @@ else:
     apt_search = environ.get("APT_SEARCH", argv[0])
 
 WITH_SUDO = ['install', 'remove', 'purge', 'update', 'upgrade',
-    'full-upgrade', 'dist-upgrade', 'autoremove', 'clean', 'autoclean',
-    'download', 'hold', 'unhold', 'edit-sources',]
+    'full-upgrade', 'dist-upgrade', 'autoremove', 'clean', 'autoclean' ]
 
-cmds = ['/usr/bin/aptitude', '/usr/bin/apt-cache', argv[0]]
+if cmd == 'aptitude':
+    WITH_SUDO.extend(['safe-upgrade', 'hold', 'unhold'])
+elif cmd == 'apt-get':
+    WITH_SUDO.append('dselect-upgrade')
+else:
+    WITH_SUDO.append('edit-sources')
 
 if len(argv) > 1:
     for e in argv[1:]:
