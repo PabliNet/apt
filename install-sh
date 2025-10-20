@@ -2,6 +2,7 @@
 LANG_SHORT=${LANG%%_*}
 [ -z "$LANG_SHORT" ] && LANG_SHORT='en'
 IS_SOURCE=$(printf "%s" $0 | awk '/^(\.|\/)/ {print 1}')
+ALTERNATIVES='/usr/local/bin/apt-get /usr/local/bin/aptitude'
 msg () {
     correct='./install-sh [--python | --sh-posix]'
     case "$LANG_SHORT" in
@@ -63,19 +64,37 @@ case "$OPTION" in
     *) o="$(msg 3)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 3 ;;
 esac
 
-if [ "$(id -u)" -gt 0 ]; then
-    copy_cmd='sudo cp'
-    chmod_cmd='sudo chmod'
-fi
 to='/usr/local/bin/apt'
+tmp=$(mktemp /tmp/apt-install.XXXXXX) || exit 1
 
 if [ -z "$o" ]; then
+    cat >"$tmp" <<EOF
+#!/bin/sh
+cp '$file' '$to' || exit 4
+chmod +x '$to' || exit 4
+for l in $ALTERNATIVES; do
+    bin=$(basename "\$l")
+    bin="/usr/bin/\$bin"
+    if [ -x "\$bin" ]; then
+        ln -sf apt "\$l"
+    else
+        exit 4
+    fi
+done
+
+exit 0
+EOF
+
+    chmod 0700 "$tmp"
+
     if [ "$(id -u)" -eq 0 ]; then
-        cp "$file" "$to" && chmod +x "$to"
+        sh "$tmp"
         ret="$?"
+        rm -f "$tmp"
     elif command -v sudo >/dev/null 2>&1; then
-        sudo sh -c "cp '$file' '$to' && chmod +x '$to'"
+        sudo sh "$tmp"
         ret="$?"
+        rm -f "$tmp"
     else
         o="$(msg 4)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 4
     fi
@@ -89,3 +108,5 @@ if [ -z "$o" ]; then
         o="$(msg 6)"; printf "%s\n" "$o"; [ -n "$IS_SOURCE" ] && exit 6
     fi
 fi
+
+exit $ret
