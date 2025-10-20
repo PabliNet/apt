@@ -1,6 +1,6 @@
 # APT WRAPPER
 
-This repository provides two wrappers for the Debian `apt` command:
+This repository provides two wrappers for the Debian `apt`, `apt-get` and `aptitude` commands:
 - A Python version (`apt_trixie.py`)
 - A POSIX shell version (`apt_trixie.sh`)
 
