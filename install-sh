@@ -70,10 +70,10 @@ tmp=$(mktemp /tmp/apt-install.XXXXXX) || exit 1
 if [ -z "$o" ]; then
     cat >"$tmp" <<EOF
 #!/bin/sh
-cp '$file' '$to' || exit 4
-chmod +x '$to' || exit 4
+cp "$file" "$to" || exit 4
+chmod +x "$to" || exit 4
 for l in $ALTERNATIVES; do
-    bin=$(basename "\$l")
+    bin=\$(basename "\$l")
     bin="/usr/bin/\$bin"
     if [ -x "\$bin" ]; then
         ln -sf apt "\$l"
