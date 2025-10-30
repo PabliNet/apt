@@ -15,20 +15,28 @@ binary_absolute () {
 # para comandos que modifican el sistema.
 
 # El binario real de apt que se ejecutará.
-APT_BINARY=$(binary_absolute "$0" || true)
+APT_BINARY=$(binary_absolute "$0" 2>/dev/null || true)
 
 # Comandos de apt que requieren permisos de root. Esta lista cubre las operaciones de escritura.
 WITH_SUDO='install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean'
 
 # Si $0 es aptitude
 case "$0" in
-    aptitude) WITH_SUDO="$WITH_SUDO hold unhold safe-upgrade" ;;
-    apt-get) WITH_SUDO="$WITH_SUDO dselect-upgrade"  ;;
-    *) WITH_SUDO="$WITH_SUDO edit-sources"
+    */apt|apt)
+        WITH_SUDO="$WITH_SUDO edit-sources"
+        # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
+        APT_SEARCH_CMD=${APT_SEARCH:-$APT_BINARY}
+    ;;
+    */apt-get|apt-get)
+        WITH_SUDO="$WITH_SUDO dselect-upgrade"
+    ;;
+    */aptitude|aptitude)
+        WITH_SUDO="$WITH_SUDO hold unhold safe-upgrade"
+        # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
+        APT_SEARCH_CMD=${APTITUDE_SEARCH:-$APT_BINARY}
+    ;;
 esac
 
-# Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
-APT_SEARCH_CMD=${APT_SEARCH:-$APT_BINARY}
 [ -z "$APT_SEARCH_CMD" ] && APT_SEARCH_CMD=$APT_BINARY
 
 # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
@@ -57,7 +65,7 @@ for arg in "$@"; do
     if [ "$( (id -u 2>/dev/null || echo 1) )" -gt 0 ]; then
         # Se añaden espacios para asegurar una coincidencia exacta de la palabra
         case " $WITH_SUDO " in
-            *" $arg "*) needs_sudo=1; break ;;
+            *" ${arg} "*) needs_sudo=1; break ;;
         esac
     fi
 
