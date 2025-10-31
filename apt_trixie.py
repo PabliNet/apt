@@ -6,7 +6,6 @@ from sys import argv, exit
 
 PATH = '/usr/bin/'
 cmd = Path(argv[0]).stem
-argv[0] = PATH + Path(argv[0]).stem.split('.')[0].split('_')[0]
 WITH_SUDO = ['install', 'remove', 'purge', 'update', 'upgrade',
     'full-upgrade', 'dist-upgrade', 'autoremove', 'clean', 'autoclean' ]
 
@@ -20,10 +19,13 @@ elif cmd == 'apt':
     WITH_SUDO.append('edit-sources')
     search = 'APT_SEARCH_CUSTOM'
 
+argv[0] = PATH + Path(argv[0]).stem.split('.')[0].split('_')[0]
+
 if not environ.get(search):
     apt_search = PATH + Path(environ.get(search, argv[0])).stem
 else:
     apt_search = environ.get(search, argv[0])
+    apt_search = apt_search if apt_search[:9] == PATH else PATH + apt_search
 
 if len(argv) > 1:
     for e in argv[1:]:

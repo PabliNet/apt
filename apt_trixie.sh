@@ -1,94 +1,81 @@
 #!/bin/sh
+PATH=/usr/bin/
+cmd=$(basename "$0")
+cmd=${cmd%%.*}
+cmd=${cmd%%_*}
 
-# Función para generar ruta absoluta
-binary_absolute () {
-    # El binario real de apt que se ejecutará.
-    file=${1##*/}; file=${file%%.*}; file=${file%%_*}
-    # Si se define APT_SEARCH_CUSTOM, se permite usar rutas personalizadas en $APT_SEARCH
-    if [ -z "$APT_SEARCH_CUSTOM" ]; then
-        file="/usr/bin/$file"  # Obliga que el ejecutable esté en directorio: /usr/bin
-    fi
-    command -v "$file" 2> /dev/null || true
-}
-
-# Wrapper para apt compatible con POSIX Sh que maneja automáticamente 'sudo'
-# para comandos que modifican el sistema.
-
-# El binario real de apt que se ejecutará.
-APT_BINARY=$(binary_absolute "$0" 2>/dev/null || true)
-
-# Comandos de apt que requieren permisos de root. Esta lista cubre las operaciones de escritura.
-WITH_SUDO='install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean'
-
-# Si $0 es aptitude
-case "$0" in
-    */apt|apt)
-        WITH_SUDO="$WITH_SUDO edit-sources"
-        # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
-        APT_SEARCH_CMD=${APT_SEARCH:-$APT_BINARY}
-    ;;
-    */apt-get|apt-get)
-        WITH_SUDO="$WITH_SUDO dselect-upgrade"
-    ;;
-    */aptitude|aptitude)
-        WITH_SUDO="$WITH_SUDO hold unhold safe-upgrade"
-        # Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
-        APT_SEARCH_CMD=${APTITUDE_SEARCH:-$APT_BINARY}
-    ;;
+case "$cmd" in
+    aptitude)
+        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean safe-upgrade hold unhold"
+        search="APTITUDE_SEARCH_CUSTOM"
+        ;;
+    apt-get)
+        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean dselect-upgrade"
+        search="APT_SEARCH_CUSTOM"
+        ;;
+    apt)
+        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean edit-sources"
+        search="APT_SEARCH_CUSTOM"
+        ;;
 esac
 
-[ -z "$APT_SEARCH_CMD" ] && APT_SEARCH_CMD=$APT_BINARY
+new_argv0="$PATH$cmd"
 
-# Binario a usar para 'apt search'. Por defecto, usa APT_BINARY, pero respeta $APT_SEARCH.
-APT_SEARCH_PATH=$(binary_absolute "$APT_SEARCH_CMD" || true)
+if [ -n "$search" ]; then
+    eval "search_value=\$$search"
+    if [ -z "$search_value" ]; then
+        apt_search="$PATH$cmd"
+    else
+        apt_search_base=$(basename "$search_value")
+        apt_search_base=${apt_search_base%%.*}
+        apt_search_base=${apt_search_base%%_*}
+        case "$search_value" in
+            /usr/bin/*)
+                apt_search="$search_value"
+                ;;
+            *)
+                apt_search="$PATH$apt_search_base"
+                ;;
+        esac
+    fi
+else
+    apt_search="$new_argv0"
+fi
 
 needs_sudo=0
-use_search_cmd=0
+use_search=0
 
-# Si no hay argumentos, mostrar ayuda de apt por defecto
-if [ $# -eq 0 ]; then
+if [ $# -gt 0 ]; then
+    for arg in "$@"; do
+        case "$arg" in
+            search)
+                if [ -x "$apt_search" ]; then
+                    use_search=1
+                fi
+                break
+                ;;
+            -*)
+                continue
+                ;;
+            *)
+                for sudo_cmd in $WITH_SUDO; do
+                    if [ "$arg" = "$sudo_cmd" ] && [ "$(id -u)" -gt 0 ]; then
+                        needs_sudo=1
+                        break 2
+                    fi
+                done
+                break
+                ;;
+        esac
+    done
+else
     set -- --help
 fi
 
-# 1. Iterar sobre los argumentos para encontrar el comando y determinar si se necesita sudo.
-# Esta lógica es crucial para manejar opciones como '--yes' o '--purge' antes del comando.
-for arg in "$@"; do
-    
-    # Caso 1: Encontrar el comando 'search' (manejo especial)
-    if [ "$arg" = "search" ]; then
-        use_search_cmd=1
-        break
-    fi
-
-    # Caso 2: Determinar si se necesita sudo (solo si el usuario no es root)
-    # La robustez para id -u es buena, asegura un fallback a 1 si el comando falla.
-    if [ "$( (id -u 2>/dev/null || echo 1) )" -gt 0 ]; then
-        # Se añaden espacios para asegurar una coincidencia exacta de la palabra
-        case " $WITH_SUDO " in
-            *" ${arg} "*) needs_sudo=1; break ;;
-        esac
-    fi
-
-    # Caso 3: Dejar de buscar si se encuentra un argumento que NO es una opción.
-    # Esto asume que el primer argumento que no empieza con '-' es el comando o un paquete.
-    case "$arg" in
-        -*) ;;  # Es una opción (continúa la búsqueda del comando)
-        *) break ;; # Es el comando o un paquete (deja de buscar comandos)
-    esac
-done
-
-# Inicialmente apunta al binario por defecto
-target_bin="$APT_BINARY"
-
-# 2. Re-enrutamiento para 'search' y validación
-if [ "$use_search_cmd" -eq 1 ]; then
-    target_bin=${APT_SEARCH_PATH:-$APT_BINARY}
-fi
-
-# 3. Ejecución final
-
-if [ "$needs_sudo" -eq 1 ]; then
-    exec /usr/bin/sudo "$target_bin" "$@"
+if [ "$use_search" -eq 1 ]; then
+    exec "$apt_search" "$@"
+elif [ "$needs_sudo" -eq 1 ]; then
+    exec /usr/bin/sudo "$new_argv0" "$@"
 else
-    exec "$target_bin" "$@"
+    exec "$new_argv0" "$@"
 fi
