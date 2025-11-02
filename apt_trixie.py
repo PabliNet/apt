@@ -5,19 +5,19 @@ from os.path import exists
 from sys import argv, exit
 
 PATH = '/usr/bin/'
-cmd = Path(argv[0]).stem
+cmd = Path(argv[0].split('_')[0]).stem
 WITH_SUDO = ['install', 'remove', 'purge', 'update', 'upgrade',
     'full-upgrade', 'dist-upgrade', 'autoremove', 'clean', 'autoclean' ]
 
 if cmd == 'aptitude':
     WITH_SUDO.extend(['safe-upgrade', 'hold', 'unhold'])
-    search = 'APTITUDE_SEARCH_CUSTOM'
+    search = 'APTITUDE_SEARCH'
 elif cmd == 'apt-get':
     WITH_SUDO.append('dselect-upgrade')
-    search = 'APT_SEARCH_CUSTOM'
+    search = ''
 elif cmd == 'apt':
     WITH_SUDO.append('edit-sources')
-    search = 'APT_SEARCH_CUSTOM'
+    search = 'APT_SEARCH'
 
 argv[0] = PATH + Path(argv[0]).stem.split('.')[0].split('_')[0]
 

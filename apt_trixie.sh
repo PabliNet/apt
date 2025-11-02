@@ -5,18 +5,17 @@ cmd=${cmd%%.*}
 cmd=${cmd%%_*}
 
 case "$cmd" in
-    aptitude)
-        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean safe-upgrade hold unhold"
-        search="APTITUDE_SEARCH_CUSTOM"
-        ;;
-    apt-get)
-        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean dselect-upgrade"
-        search="APT_SEARCH_CUSTOM"
-        ;;
     apt)
         WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean edit-sources"
-        search="APT_SEARCH_CUSTOM"
-        ;;
+        search="APT_SEARCH"
+    ;;
+    apt-get)
+        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean dselect-upgrade"
+    ;;
+    aptitude)
+        WITH_SUDO="install remove purge update upgrade full-upgrade dist-upgrade autoremove clean autoclean safe-upgrade hold unhold"
+        search="APTITUDE_SEARCH"
+    ;;
 esac
 
 new_argv0="$PATH$cmd"
@@ -30,12 +29,8 @@ if [ -n "$search" ]; then
         apt_search_base=${apt_search_base%%.*}
         apt_search_base=${apt_search_base%%_*}
         case "$search_value" in
-            /usr/bin/*)
-                apt_search="$search_value"
-                ;;
-            *)
-                apt_search="$PATH$apt_search_base"
-                ;;
+            /usr/bin/*) apt_search="$search_value" ;;
+            *) apt_search="$PATH$apt_search_base" ;;
         esac
     fi
 else
@@ -49,14 +44,10 @@ if [ $# -gt 0 ]; then
     for arg in "$@"; do
         case "$arg" in
             search)
-                if [ -x "$apt_search" ]; then
-                    use_search=1
-                fi
+                [ -x "$apt_search" ] && use_search=1
                 break
-                ;;
-            -*)
-                continue
-                ;;
+            ;;
+            -*) continue ;;
             *)
                 for sudo_cmd in $WITH_SUDO; do
                     if [ "$arg" = "$sudo_cmd" ] && [ "$(id -u)" -gt 0 ]; then
@@ -65,7 +56,7 @@ if [ $# -gt 0 ]; then
                     fi
                 done
                 break
-                ;;
+            ;;
         esac
     done
 else
