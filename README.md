@@ -54,14 +54,21 @@ or
 ```
 ## Customizing the search command
 
-By default, the wrapper uses apt for search operations.  
-You can change this behavior by setting the environment variable `APT_SEARCH` to another command, such as aptitude or apt-cache.
+By default, the wrapper uses `apt` for search operations.  
+You can change this behavior by setting the environment variable `APT_SEARCH` to another command, such as `apt-cache` or `aptitude`.
 
 ```sh
 export APT_SEARCH=/usr/bin/aptitude
 ```
 
-This variable can also be set permanently in your shell configuration file (e.g. ~/.bashrc or ~/.profile).
+By default, the wrapper uses `aptitude` for search operations.  
+You can change this behavior by setting the environment variable `APTITUDE_SEARCH` to another command, such as `apt` or `apt-cache`.
+
+```sh
+export APTITUDE_SEARCH=/usr/bin/apt
+```
+
+This variable can also be set permanently in your shell configuration file (e.g. `~/.bashrc` or `~/.profile`).
 
 ### Allowing custom binary paths
 
